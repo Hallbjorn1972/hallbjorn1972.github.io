@@ -186,10 +186,10 @@ canvas { width: 100%; height: auto; display: block; }
   <div class="btn filebtn" role="group">Take or choose a photo <span class="state" id="photoState">None</span><input type="file" id="photoFile" accept="image/*" aria-label="Take or choose a photo"></div>
   <label for="photoPos">Photo position</label>
   <select id="photoPos">
-    <option value="top-left">Top left of the map</option>
-    <option value="bottom-left">Bottom left of the map</option>
-    <option value="top-right">Top right of the map</option>
-    <option value="bottom-right">Bottom right of the map</option>
+    <option value="top-left">Top left, over the map</option>
+    <option value="bottom-left">Bottom left corner of the page</option>
+    <option value="top-right">Top right, over the map</option>
+    <option value="bottom-right">Bottom right, over the map</option>
   </select>
 
   <details>
@@ -258,7 +258,7 @@ canvas { width: 100%; height: auto; display: block; }
       if (h > 470) { h = 470; w = h * a; }
     }
     var pos = $('photoPos').value;
-    return { x: pos.indexOf('right') >= 0 ? 983 - w : 17, y: pos.indexOf('bottom') >= 0 ? 753 - h : 268, w: w, h: h };
+    return { x: pos.indexOf('right') >= 0 ? 983 - w : 17, y: pos === 'bottom-left' ? 983 - h : (pos === 'bottom-right' ? 753 - h : 268), w: w, h: h };
   }
 
   var canvas = $('cv'), ctx = canvas.getContext('2d');
