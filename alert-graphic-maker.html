@@ -65,8 +65,9 @@ body {
 .bar h1 { margin: 0; font-family: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif; font-weight: 700; font-size: 28px; line-height: 1.05; letter-spacing: .01em; }
 .bar p { margin: 2px 0 0; font-size: 14px; color: #a9dfeb; }
 .wrap { max-width: 1120px; margin: 0 auto; padding: 16px; display: grid; gap: 16px; }
+.cols { display: grid; gap: 16px; }
 @media (min-width: 920px) {
-  .wrap { grid-template-columns: minmax(340px, 440px) 1fr; align-items: start; }
+  .cols { grid-template-columns: minmax(340px, 440px) 1fr; align-items: start; }
   .preview { position: sticky; top: 16px; }
 }
 .panel { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
@@ -129,6 +130,7 @@ canvas { width: 100%; height: auto; display: block; }
 
 <main class="wrap">
 <p class="note">First time here? Fill in the form, add a map, then tap “Make image.” If anything isn’t clear, there are step-by-step instructions at the bottom of the page. <a class="link" id="helpLink" href="#help">Go to the instructions</a></p>
+<div class="cols">
 <section class="panel form" aria-label="Report details">
   <h2>What was seen</h2>
   <label for="type">Type of alert</label>
@@ -214,6 +216,7 @@ canvas { width: 100%; height: auto; display: block; }
     </div>
   </div>
 </section>
+</div>
 <details class="help" id="help">
   <summary>How to use this page</summary>
   <ol>
