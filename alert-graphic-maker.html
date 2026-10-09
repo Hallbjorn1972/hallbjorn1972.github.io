@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>MGM Migra Watch – report generator</title>
+<title>MGM Migra Watch – Alert graphic maker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
@@ -169,7 +169,7 @@ canvas { width: 100%; height: auto; display: block; }
   <div class="btn filebtn" role="group">Choose map image <span class="state" id="mapState">None</span><input type="file" id="mapFile" accept="image/*" aria-label="Choose map image"></div>
   <div class="inline"><input type="checkbox" id="circleOn" checked><label for="circleOn">Red circle on the map</label></div>
   <label for="circleSize">Circle size</label>
-  <input type="range" id="circleSize" min="30" max="220" value="90">
+  <input type="range" id="circleSize" min="20" max="200" value="85">
   <p class="hint">Tap the map in the preview to move the circle.</p>
   <label for="mapZoom">Zoom the map</label>
   <input type="range" id="mapZoom" min="1" max="3" step="0.05" value="1">
@@ -180,6 +180,13 @@ canvas { width: 100%; height: auto; display: block; }
 
   <label style="margin-top:18px">Photo <span class="opt">(optional)</span></label>
   <div class="btn filebtn" role="group">Take or choose a photo <span class="state" id="photoState">None</span><input type="file" id="photoFile" accept="image/*" aria-label="Take or choose a photo"></div>
+  <label for="photoPos">Photo position</label>
+  <select id="photoPos">
+    <option value="top-left">Top left of the map</option>
+    <option value="bottom-left">Bottom left of the map</option>
+    <option value="top-right">Top right of the map</option>
+    <option value="bottom-right">Bottom right of the map</option>
+  </select>
 
   <details>
     <summary>Edit the footer text</summary>
@@ -220,8 +227,8 @@ canvas { width: 100%; height: auto; display: block; }
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
   var FONT = 'Arial, "Helvetica Neue", Helvetica, sans-serif';
-  var LH = 1.2, S = 1.5;
-  var BG = '#3fcfea', YELLOW = '#ffff00', RED = '#e11d0c';
+  var LH = 1.3, S = 1.5;
+  var BG = '#3fcfea', YELLOW = '#ffff00', RED = '#e8321a';
 
   var TYPES = [
     { id: 'vehicle',  label: 'Marked vehicle',    es: '🚨VEHÍCULO DE 🧊🚨',                       en: '🚨MARKED 🧊 VEHICLE🚨' },
@@ -236,8 +243,19 @@ canvas { width: 100%; height: auto; display: block; }
   var DEF_FES = 'SI TIENE MÁS INFORMACIÓN CONTÁCTENOS.';
 
   // Layout in a 1000 x 1000 space
-  var MAP = { x: 60, y: 335, w: 920, h: 425 };
-  var PHOTO = { x: 20, y: 540, w: 400, h: 440 };
+  var MAP = { x: 54, y: 253, w: 892, h: 517 };
+  // The photo keeps its own shape, about the same visual size as in the sheet version
+  function photoRect() {
+    var w = 239, h = 395;
+    if (photoImg) {
+      var a = photoImg.width / photoImg.height;
+      w = Math.sqrt(94000 * a); h = w / a;
+      if (w > 330) { w = 330; h = w / a; }
+      if (h > 470) { h = 470; w = h * a; }
+    }
+    var pos = $('photoPos').value;
+    return { x: pos.indexOf('right') >= 0 ? 983 - w : 17, y: pos.indexOf('bottom') >= 0 ? 753 - h : 268, w: w, h: h };
+  }
 
   var canvas = $('cv'), ctx = canvas.getContext('2d');
   var mapImg = null, photoImg = null, circle = { x: 0.5, y: 0.5 };
@@ -333,14 +351,15 @@ canvas { width: 100%; height: auto; display: block; }
   function textBox(x, y, w, h, text, o) {
     ctx.save();
     if (o.bg) { ctx.fillStyle = o.bg; ctx.fillRect(x, y, w, h); }
-    var pad = o.pad == null ? 12 : o.pad;
-    var L = layout(text, w - 2 * pad, h - 2 * pad, o.max, o.min, o.weight);
+    if (o.border) { ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5; ctx.strokeRect(x + 0.75, y + 0.75, w - 1.5, h - 1.5); }
+    var px = o.padX == null ? 12 : o.padX, py = o.padY == null ? 8 : o.padY;
+    var L = layout(text, w - 2 * px, h - 2 * py, o.max, o.min, o.weight);
     ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
     ctx.fillStyle = o.color; ctx.textBaseline = 'middle'; ctx.textAlign = o.align;
     ctx.font = o.weight + ' ' + L.size + 'px ' + FONT;
     var total = L.lines.length * L.size * LH;
     var ty = y + (h - total) / 2 + (L.size * LH) / 2;
-    var tx = o.align === 'center' ? x + w / 2 : (o.align === 'right' ? x + w - pad : x + pad);
+    var tx = o.align === 'center' ? x + w / 2 : (o.align === 'right' ? x + w - px : x + px);
     L.lines.forEach(function (line) { ctx.fillText(line, tx, ty); ty += L.size * LH; });
     ctx.restore();
   }
@@ -360,34 +379,42 @@ canvas { width: 100%; height: auto; display: block; }
     if (img) cover(img, r, view);
     else {
       ctx.fillStyle = '#d9e5ea'; ctx.fillRect(r.x, r.y, r.w, r.h);
-      ctx.fillStyle = '#6a7f88'; ctx.font = 'bold 34px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#6a7f88'; ctx.font = 'bold 26px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText(label, r.x + r.w / 2, r.y + r.h / 2);
     }
     ctx.restore();
   }
   function draw() {
-    var v = vals();
+    var v = vals(), PH = photoRect();
     ctx.setTransform(S, 0, 0, S, 0, 0);
     ctx.fillStyle = BG; ctx.fillRect(0, 0, 1000, 1000);
 
-    textBox(20, 20, 590, 130, v.header, { bg: '#000', color: '#fff', align: 'center', max: 44, min: 14, weight: 'bold' });
-    textBox(625, 20, 355, 130, v.stamp, { bg: YELLOW, color: '#000', align: 'right', max: 34, min: 12, weight: '600' });
-    textBox(20, 160, 590, 160, v.es, { bg: YELLOW, color: '#000', align: 'center', max: 44, min: 12, weight: '600' });
-    if (logoReady) ctx.drawImage(logo, 845, 165, 135, 135);
+    textBox(25, 15, 587, 56, v.header, { bg: '#000', color: '#fff', align: 'center', max: 19, min: 9, weight: 'bold', padX: 6, padY: 2 });
+
+    // date and place box: L-shaped, like the sheet version
+    ctx.save();
+    ctx.fillStyle = YELLOW;
+    ctx.beginPath();
+    ctx.moveTo(612, 15); ctx.lineTo(975, 15); ctx.lineTo(975, 119); ctx.lineTo(578, 119); ctx.lineTo(578, 71); ctx.lineTo(612, 71); ctx.closePath();
+    ctx.fill(); ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.restore();
+    textBox(578, 15, 397, 104, v.stamp, { color: '#000', align: 'right', max: 19, min: 9, weight: 'normal', padX: 5, padY: 1 });
+
+    textBox(25, 94, 531, 159, v.es, { bg: YELLOW, border: true, color: '#000', align: 'center', max: 19, min: 9, weight: 'normal', padX: 22 });
+    if (logoReady) ctx.drawImage(logo, 0, 68, 360, 259, 799, 123, 121, 87);
 
     slot(MAP, mapImg, 'Add a map image', mapView());
     if (mapImg && $('circleOn').checked) {
       ctx.save();
       ctx.beginPath(); ctx.rect(MAP.x, MAP.y, MAP.w, MAP.h); ctx.clip();
-      ctx.strokeStyle = RED; ctx.lineWidth = 11;
+      ctx.strokeStyle = RED; ctx.lineWidth = 3.5;
       ctx.beginPath(); ctx.arc(MAP.x + circle.x * MAP.w, MAP.y + circle.y * MAP.h, +$('circleSize').value, 0, Math.PI * 2);
       ctx.stroke(); ctx.restore();
     }
-    slot(PHOTO, photoImg, 'Add a photo');
-    if (photoImg) { ctx.save(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 6; ctx.strokeRect(PHOTO.x, PHOTO.y, PHOTO.w, PHOTO.h); ctx.restore(); }
+    slot(PH, photoImg, 'Add a photo');
 
-    textBox(440, 775, 540, 135, v.en, { bg: YELLOW, color: '#000', align: 'center', max: 44, min: 12, weight: '600' });
-    textBox(440, 920, 540, 60, v.fEn + '\n' + v.fEs, { bg: '#000', color: '#fff', align: 'right', max: 26, min: 10, weight: 'bold', pad: 10 });
+    textBox(488, 771, 487, 153, v.en, { bg: YELLOW, border: true, color: '#000', align: 'center', max: 19, min: 9, weight: 'normal', padX: 22 });
+    textBox(488, 939, 487, 45, v.fEn + '\n' + v.fEs, { bg: '#000', color: '#fff', align: 'right', max: 15.5, min: 8, weight: 'bold', padX: 6, padY: 1 });
 
     updateSide();
   }
@@ -435,7 +462,7 @@ canvas { width: 100%; height: auto; display: block; }
     var r = canvas.getBoundingClientRect();
     var x = (e.clientX - r.left) / r.width * 1000, y = (e.clientY - r.top) / r.height * 1000;
     function inside(b) { return x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h; }
-    if (!mapImg || (photoImg && inside(PHOTO))) return;
+    if (!mapImg || (photoImg && inside(photoRect()))) return;
     if (inside(MAP)) {
       circle = { x: (x - MAP.x) / MAP.w, y: (y - MAP.y) / MAP.h };
       $('circleOn').checked = true; draw();
@@ -443,7 +470,7 @@ canvas { width: 100%; height: auto; display: block; }
   });
 
   // ---------- inputs ----------
-  ['type', 'en', 'es', 'date', 'time', 'road', 'city', 'state', 'circleOn', 'circleSize', 'mapZoom', 'mapX', 'mapY', 'fEn', 'fEs'].forEach(function (id) {
+  ['type', 'en', 'es', 'date', 'time', 'road', 'city', 'state', 'circleOn', 'circleSize', 'mapZoom', 'mapX', 'mapY', 'photoPos', 'fEn', 'fEs'].forEach(function (id) {
     $(id).addEventListener('input', function () { if (id === 'city' || id === 'state' || id === 'fEn' || id === 'fEs') savePrefs(); draw(); });
     $(id).addEventListener('change', draw);
   });
