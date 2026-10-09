@@ -133,7 +133,7 @@ canvas { width: 100%; height: auto; display: block; }
     <li><strong>Choose the alert type</strong> and write what was seen in English. Tap “Translate the English with DeepL,” then paste the Spanish into the Spanish box and read it over.</li>
     <li><strong>Check the date, time and place.</strong> The date and time start as right now. In the road, business or area box, name a landmark people will recognize, like a gas station or an exit.</li>
     <li><strong>Take a map screenshot.</strong> In Google Maps, search for the spot and zoom until the spot and the main roads around it are on screen. Then screenshot: on iPhone press the side button and volume up together, on most Android phones press power and volume down.</li>
-    <li><strong>Add the map.</strong> Tap “Choose map image” and pick the screenshot. A red circle appears. Tap the spot on the preview to move the circle, and use the size slider to fit it. If the search bar or buttons from Google Maps show, use the zoom and move sliders to frame them out.</li>
+    <li><strong>Add the map.</strong> Tap “Choose map image” and pick the screenshot. A red circle appears. Tap the spot on the preview to move the circle, or use the sliders to move and resize it. If the search bar or buttons from Google Maps show, use the zoom and move sliders to frame them out.</li>
     <li><strong>Add a photo</strong> if you have one. It is optional.</li>
     <li><strong>Tap “Make image.”</strong> Check the result, then save it to your phone and copy the caption to post with it.</li>
   </ol>
@@ -170,7 +170,11 @@ canvas { width: 100%; height: auto; display: block; }
   <div class="inline"><input type="checkbox" id="circleOn" checked><label for="circleOn">Red circle on the map</label></div>
   <label for="circleSize">Circle size</label>
   <input type="range" id="circleSize" min="20" max="200" value="85">
-  <p class="hint">Tap the map in the preview to move the circle.</p>
+  <label for="circleX">Move the circle left or right</label>
+  <input type="range" id="circleX" min="0" max="100" step="0.5" value="50">
+  <label for="circleY">Move the circle up or down</label>
+  <input type="range" id="circleY" min="0" max="100" step="0.5" value="50">
+  <p class="hint">Tap the map in the preview, or use the sliders, to move the circle.</p>
   <label for="mapZoom">Zoom the map</label>
   <input type="range" id="mapZoom" min="1" max="3" step="0.05" value="1">
   <label for="mapX">Move the map left or right</label>
@@ -258,7 +262,7 @@ canvas { width: 100%; height: auto; display: block; }
   }
 
   var canvas = $('cv'), ctx = canvas.getContext('2d');
-  var mapImg = null, photoImg = null, circle = { x: 0.5, y: 0.5 };
+  var mapImg = null, photoImg = null;
   var logo = new Image(), logoReady = false;
   logo.onload = function () { logoReady = true; draw(); };
   logo.src = $('mapState') ? document.querySelector('.bar img').src : '';
@@ -408,7 +412,7 @@ canvas { width: 100%; height: auto; display: block; }
       ctx.save();
       ctx.beginPath(); ctx.rect(MAP.x, MAP.y, MAP.w, MAP.h); ctx.clip();
       ctx.strokeStyle = RED; ctx.lineWidth = 3.5;
-      ctx.beginPath(); ctx.arc(MAP.x + circle.x * MAP.w, MAP.y + circle.y * MAP.h, +$('circleSize').value, 0, Math.PI * 2);
+      ctx.beginPath(); ctx.arc(MAP.x + (+$('circleX').value / 100) * MAP.w, MAP.y + (+$('circleY').value / 100) * MAP.h, +$('circleSize').value, 0, Math.PI * 2);
       ctx.stroke(); ctx.restore();
     }
     slot(PH, photoImg, 'Add a photo');
@@ -448,10 +452,10 @@ canvas { width: 100%; height: auto; display: block; }
     im.onerror = function () { URL.revokeObjectURL(url); say('That file could not be opened as an image.'); };
     im.src = url;
   }
-  function resetFrame() { $('mapZoom').value = 1; $('mapX').value = 50; $('mapY').value = 50; }
+  function resetFrame() { $('mapZoom').value = 1; $('mapX').value = 50; $('mapY').value = 50; $('circleX').value = 50; $('circleY').value = 50; }
   $('mapFile').addEventListener('change', function (e) {
     var f = e.target.files[0]; if (!f) return;
-    loadFile(f, function (c) { mapImg = c; circle = { x: 0.5, y: 0.5 }; resetFrame(); $('circleOn').checked = true; $('mapState').textContent = 'Added'; draw(); });
+    loadFile(f, function (c) { mapImg = c; resetFrame(); $('circleOn').checked = true; $('mapState').textContent = 'Added'; draw(); });
   });
   $('photoFile').addEventListener('change', function (e) {
     var f = e.target.files[0]; if (!f) return;
@@ -464,13 +468,14 @@ canvas { width: 100%; height: auto; display: block; }
     function inside(b) { return x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h; }
     if (!mapImg || (photoImg && inside(photoRect()))) return;
     if (inside(MAP)) {
-      circle = { x: (x - MAP.x) / MAP.w, y: (y - MAP.y) / MAP.h };
+      $('circleX').value = Math.max(0, Math.min(100, (x - MAP.x) / MAP.w * 100));
+      $('circleY').value = Math.max(0, Math.min(100, (y - MAP.y) / MAP.h * 100));
       $('circleOn').checked = true; draw();
     }
   });
 
   // ---------- inputs ----------
-  ['type', 'en', 'es', 'date', 'time', 'road', 'city', 'state', 'circleOn', 'circleSize', 'mapZoom', 'mapX', 'mapY', 'photoPos', 'fEn', 'fEs'].forEach(function (id) {
+  ['type', 'en', 'es', 'date', 'time', 'road', 'city', 'state', 'circleOn', 'circleSize', 'circleX', 'circleY', 'mapZoom', 'mapX', 'mapY', 'photoPos', 'fEn', 'fEs'].forEach(function (id) {
     $(id).addEventListener('input', function () { if (id === 'city' || id === 'state' || id === 'fEn' || id === 'fEs') savePrefs(); draw(); });
     $(id).addEventListener('change', draw);
   });
@@ -478,7 +483,7 @@ canvas { width: 100%; height: auto; display: block; }
 
   $('reset').addEventListener('click', function () {
     ['en', 'es', 'road'].forEach(function (id) { $(id).value = ''; });
-    mapImg = null; photoImg = null; circle = { x: 0.5, y: 0.5 }; resetFrame();
+    mapImg = null; photoImg = null; resetFrame();
     $('mapFile').value = ''; $('photoFile').value = '';
     $('mapState').textContent = 'None'; $('photoState').textContent = 'None';
     $('result').hidden = true; setNow(); say(''); draw();
