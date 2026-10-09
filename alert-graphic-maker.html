@@ -110,6 +110,7 @@ canvas { width: 100%; height: auto; display: block; }
 .result[hidden] { display: none; }
 .result img { width: 100%; max-width: 520px; height: auto; display: block; border-radius: 8px; border: 1px solid var(--line); margin: 0 auto; }
 .result .btns { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 12px; }
+.note { grid-column: 1 / -1; margin: 0; padding: 10px 14px; background: var(--card); border: 1px solid var(--line); border-left: 5px solid var(--accent); border-radius: 8px; font-size: 15px; }
 .help { grid-column: 1 / -1; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 4px 16px; margin: 0; }
 .help summary { font-family: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif; font-size: 23px; font-weight: 700; padding: 10px 0; }
 .help ol { margin: 0 0 12px; padding-left: 22px; max-width: 78ch; }
@@ -127,18 +128,7 @@ canvas { width: 100%; height: auto; display: block; }
 </div></header>
 
 <main class="wrap">
-<details class="help" id="help" open>
-  <summary>How to use this page</summary>
-  <ol>
-    <li><strong>Choose the alert type</strong> and write what was seen in English. Tap “Translate the English with DeepL,” then paste the Spanish into the Spanish box and read it over.</li>
-    <li><strong>Check the date, time and place.</strong> The date and time start as right now. In the road, business or area box, name a landmark people will recognize, like a gas station or an exit.</li>
-    <li><strong>Take a map screenshot.</strong> In Google Maps, search for the spot and zoom until the spot and the main roads around it are on screen. Then screenshot: on iPhone press the side button and volume up together, on most Android phones press power and volume down.</li>
-    <li><strong>Add the map.</strong> Tap “Choose map image” and pick the screenshot. A red circle appears. Tap the spot on the preview to move the circle, or use the sliders to move and resize it. If the search bar or buttons from Google Maps show, use the zoom and move sliders to frame them out.</li>
-    <li><strong>Add a photo</strong> if you have one. It is optional.</li>
-    <li><strong>Tap “Make image.”</strong> Check the result, then save it to your phone and copy the caption to post with it.</li>
-  </ol>
-  <p>Start a new report with the button at the bottom of the form. Your photos and text never leave your device, and city, state and footer settings are remembered for next time.</p>
-</details>
+<p class="note">First time here? Fill in the form, add a map, then tap “Make image.” If anything isn’t clear, there are step-by-step instructions at the bottom of the page. <a class="link" id="helpLink" href="#help">Go to the instructions</a></p>
 <section class="panel form" aria-label="Report details">
   <h2>What was seen</h2>
   <label for="type">Type of alert</label>
@@ -224,6 +214,18 @@ canvas { width: 100%; height: auto; display: block; }
     </div>
   </div>
 </section>
+<details class="help" id="help">
+  <summary>How to use this page</summary>
+  <ol>
+    <li><strong>Choose the alert type</strong> and write what was seen in English. Tap “Translate the English with DeepL,” then paste the Spanish into the Spanish box and read it over.</li>
+    <li><strong>Check the date, time and place.</strong> The date and time start as right now. In the road, business or area box, name a landmark people will recognize, like a gas station or an exit.</li>
+    <li><strong>Take a map screenshot.</strong> In Google Maps, search for the spot and zoom until the spot and the main roads around it are on screen. Then screenshot: on iPhone press the side button and volume up together, on most Android phones press power and volume down.</li>
+    <li><strong>Add the map.</strong> Tap “Choose map image” and pick the screenshot. A red circle appears. Tap the spot on the preview to move the circle, or use the sliders to move and resize it. If the search bar or buttons from Google Maps show, use the zoom and move sliders to frame them out.</li>
+    <li><strong>Add a photo</strong> if you have one. It is optional.</li>
+    <li><strong>Tap “Make image.”</strong> Check the result, then save it to your phone and copy the caption to post with it.</li>
+  </ol>
+  <p>Start a new report with the button at the bottom of the form. Your photos and text never leave your device, and city, state and footer settings are remembered for next time.</p>
+</details>
 </main>
 
 <script>
@@ -544,10 +546,7 @@ canvas { width: 100%; height: auto; display: block; }
     catch (e) { say('Press and hold the text to copy it.'); }
   });
 
-  try { if (localStorage.getItem('mmw-help') === 'closed') $('help').open = false; } catch (e) { /* ignore */ }
-  $('help').addEventListener('toggle', function () {
-    try { localStorage.setItem('mmw-help', $('help').open ? 'open' : 'closed'); } catch (e) { /* ignore */ }
-  });
+  $('helpLink').addEventListener('click', function () { $('help').open = true; });
 
   draw();
 })();
