@@ -134,13 +134,13 @@ canvas { width: 100%; height: auto; display: block; }
 <main class="wrap">
 <p class="note">First time here? Fill in the form, add a map, then tap “Make image.” If anything isn’t clear, there are step-by-step instructions at the bottom of the page. <a class="link" id="helpLink" href="#help">Go to the instructions</a></p>
 <div class="panel orgbar">
-  <label for="org" style="margin-top:0">Which group is this report for?</label>
+  <label for="org" style="margin-top:0">Which MW group is this report for?</label>
   <select id="org"></select>
 </div>
 <div class="cols">
 <section class="panel form" aria-label="Report details">
-  <h2>What was seen</h2>
-  <label for="type">Type of alert</label>
+  <h2>What was Seen</h2>
+  <label for="type">Type of Alert</label>
   <select id="type"></select>
 
   <label for="en">Description in English</label>
@@ -156,7 +156,7 @@ canvas { width: 100%; height: auto; display: block; }
     <div><label for="time">Time</label><input type="time" id="time"></div>
   </div>
   <div style="margin-top:8px"><button type="button" class="small" id="now">Use the current date and time</button></div>
-  <label for="road">Road, business or area</label>
+  <label for="road">Road, Business or Area</label>
   <input type="text" id="road" placeholder="Ann Street, near I-85 Exit 3" autocomplete="off">
   <div class="row3">
     <div><label for="city">City</label><input type="text" id="city" autocomplete="off"></div>
@@ -164,7 +164,7 @@ canvas { width: 100%; height: auto; display: block; }
   </div>
 
   <h2>Images</h2>
-  <label class="opt" style="margin-top:0">Map image <span class="opt">(a screenshot works)</span></label>
+  <label class="opt" style="margin-top:0">Map Image <span class="opt">(a screenshot works)</span></label>
   <div class="btn filebtn" role="group">Choose map image <span class="state" id="mapState">None</span><input type="file" id="mapFile" accept="image/*" aria-label="Choose map image"></div>
   <div class="inline"><input type="checkbox" id="circleOn" checked><label for="circleOn">Red oval on the map</label></div>
   <label for="circleSize">Oval size</label>
@@ -227,11 +227,11 @@ canvas { width: 100%; height: auto; display: block; }
 <details class="help" id="help">
   <summary>How to use this page</summary>
   <ol>
-    <li><strong>Pick your group</strong> in the box at the top of the page, so the right logo and city are used.</li>
+    <li><strong>Pick your MW group</strong> in the box at the top of the page, so that the right logo and city are displayed.</li>
     <li><strong>Choose the alert type</strong> and write what was seen in English. Tap “Translate the English with DeepL,” then paste the Spanish into the Spanish box and read it over.</li>
-    <li><strong>Check the date, time and place.</strong> The date and time start as right now. In the road, business or area box, name a landmark people will recognize, like a gas station or an exit.</li>
-    <li><strong>Take a map screenshot.</strong> In Google Maps, search for the spot and zoom until the spot and the main roads around it are on screen. Then screenshot: on iPhone press the side button and volume up together, on most Android phones press power and volume down.</li>
-    <li><strong>Add the map.</strong> Tap “Choose map image” and pick the screenshot. A red oval appears. Tap the spot on the preview to move it, or use the sliders to move, resize, stretch and rotate it. Make the oval long and rotate it to circle a street. If the search bar or buttons from Google Maps show, use the zoom and move sliders to frame them out.</li>
+    <li><strong>Check the date, time, and place.</strong> The date and time default to right now. In the "Road, Business or Area" box, name a landmark people will recognize, like a gas station or an exit number.</li>
+    <li><strong>Take a map screenshot.</strong> In Google Maps, Apple Maps, or OpenStreetMap, search for the location and zoom until the main roads around it are on screen. Then screenshot: On iPhone press the side button and volume up together, on most Android phones, press Power and Volume Down.</li>
+    <li><strong>Add the map.</strong> Tap “Choose map image” and pick the screenshot. A red oval appears by default. Tap the spot on the preview to move it, or use the sliders to move, resize, stretch and rotate it. Make the oval long and rotate it to circle a street. If the search bar or buttons from Google Maps show, use the zoom and move sliders to frame them out.</li>
     <li><strong>Add a photo</strong> if you have one. It is optional.</li>
     <li><strong>Tap “Make image.”</strong> Check the result, then save it to your phone and copy the caption to post with it.</li>
   </ol>
