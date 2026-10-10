@@ -466,7 +466,7 @@ canvas { width: 100%; height: auto; display: block; }
     textBox(SPA.x, SPA.y, SPA.w, SPA.h, v.es, { bg: YELLOW, border: true, color: '#000', align: 'center', max: 29.8, min: 9, weight: 'normal', padX: 18 });
     drawLogo(LOGO_R.x, LOGO_R.y, LOGO_R.w, LOGO_R.h);
 
-    slot(PH, photoImg, 'Add a photo');
+    if (photoImg) slot(PH, photoImg, '');
 
     textBox(ENG.x, ENG.y, ENG.w, ENG.h, v.en, { bg: YELLOW, border: true, color: '#000', align: 'center', max: 29.8, min: 9, weight: 'normal', padX: 18 });
     textBox(FOOT.x, FOOT.y, FOOT.w, FOOT.h, v.fEn + '\n' + v.fEs, { bg: '#000', color: '#fff', align: 'right', max: 20.8, min: 8, weight: 'bold', padX: 8, padY: 2 });
