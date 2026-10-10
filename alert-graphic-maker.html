@@ -254,7 +254,8 @@ canvas { width: 100%; height: auto; display: block; }
   var DEF_FES = 'SI TIENE MÁS INFORMACIÓN CONTÁCTENOS.';
 
   // Layout in a 1000 x 1000 space
-  var MAP = { x: 25, y: 283, w: 950, h: 570 };
+  var MAP = { x: 25, y: 194, w: 950, h: 701 };
+  var SPA = { x: 25, y: 106, w: 505, h: 177 }, LOGO_R = { x: 825, y: 158, w: 150, h: 108 };
   var ENG = { x: 440, y: 760, w: 535, h: 162 }, FOOT = { x: 440, y: 932, w: 535, h: 52 };
   // The photo keeps its own shape, about the same visual size as in the sheet version
   function photoRect() {
@@ -265,7 +266,7 @@ canvas { width: 100%; height: auto; display: block; }
       if (w > 340) { w = 340; h = w / a; }
       if (h > 480) { h = 480; w = h * a; }
     }
-    var top = MAP.y + 15, bottom = 983 - h, k = +$('photoY').value / 100;
+    var top = 298, bottom = 983 - h, k = +$('photoY').value / 100;
     return { x: 17, y: top + (bottom - top) * k, w: w, h: h };
   }
 
@@ -434,20 +435,7 @@ canvas { width: 100%; height: auto; display: block; }
     ctx.setTransform(S, 0, 0, S, 0, 0);
     ctx.fillStyle = BG; ctx.fillRect(0, 0, 1000, 1000);
 
-    textBox(25, 15, 587, 72, v.header, { bg: '#000', color: '#fff', align: 'center', max: 26, min: 9, weight: 'bold', padX: 8, padY: 3 });
-
-    // date and place box: L-shaped, like the sheet version
-    ctx.save();
-    ctx.fillStyle = YELLOW;
-    ctx.beginPath();
-    ctx.moveTo(612, 15); ctx.lineTo(975, 15); ctx.lineTo(975, 139); ctx.lineTo(540, 139); ctx.lineTo(540, 87); ctx.lineTo(612, 87); ctx.closePath();
-    ctx.fill(); ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5; ctx.stroke();
-    ctx.restore();
-    textBox(540, 15, 435, 124, v.stamp, { color: '#000', align: 'right', max: 22, min: 9, weight: 'normal', padX: 6, padY: 2 });
-
-    textBox(25, 98, 505, 185, v.es, { bg: YELLOW, border: true, color: '#000', align: 'center', max: 27, min: 9, weight: 'normal', padX: 18 });
-    drawLogo(825, 146, 150, 108);
-
+    // map first, so the text boxes can sit on top of it
     slot(MAP, mapImg, 'Add a map image', mapView());
     if (mapImg && $('circleOn').checked) {
       ctx.save();
@@ -456,10 +444,25 @@ canvas { width: 100%; height: auto; display: block; }
       ctx.beginPath(); ctx.arc(MAP.x + (+$('circleX').value / 100) * MAP.w, MAP.y + (+$('circleY').value / 100) * MAP.h, +$('circleSize').value, 0, Math.PI * 2);
       ctx.stroke(); ctx.restore();
     }
+
+    textBox(25, 15, 587, 80, v.header, { bg: '#000', color: '#fff', align: 'center', max: 28.8, min: 9, weight: 'bold', padX: 8, padY: 3 });
+
+    // date and place box: L-shaped, like the sheet version
+    ctx.save();
+    ctx.fillStyle = YELLOW;
+    ctx.beginPath();
+    ctx.moveTo(612, 15); ctx.lineTo(975, 15); ctx.lineTo(975, 151); ctx.lineTo(540, 151); ctx.lineTo(540, 95); ctx.lineTo(612, 95); ctx.closePath();
+    ctx.fill(); ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.restore();
+    textBox(540, 15, 435, 136, v.stamp, { color: '#000', align: 'right', max: 24.8, min: 9, weight: 'normal', padX: 6, padY: 2 });
+
+    textBox(SPA.x, SPA.y, SPA.w, SPA.h, v.es, { bg: YELLOW, border: true, color: '#000', align: 'center', max: 29.8, min: 9, weight: 'normal', padX: 18 });
+    drawLogo(LOGO_R.x, LOGO_R.y, LOGO_R.w, LOGO_R.h);
+
     slot(PH, photoImg, 'Add a photo');
 
-    textBox(ENG.x, ENG.y, ENG.w, ENG.h, v.en, { bg: YELLOW, border: true, color: '#000', align: 'center', max: 27, min: 9, weight: 'normal', padX: 18 });
-    textBox(FOOT.x, FOOT.y, FOOT.w, FOOT.h, v.fEn + '\n' + v.fEs, { bg: '#000', color: '#fff', align: 'right', max: 18, min: 8, weight: 'bold', padX: 8, padY: 2 });
+    textBox(ENG.x, ENG.y, ENG.w, ENG.h, v.en, { bg: YELLOW, border: true, color: '#000', align: 'center', max: 29.8, min: 9, weight: 'normal', padX: 18 });
+    textBox(FOOT.x, FOOT.y, FOOT.w, FOOT.h, v.fEn + '\n' + v.fEs, { bg: '#000', color: '#fff', align: 'right', max: 20.8, min: 8, weight: 'bold', padX: 8, padY: 2 });
 
     updateSide();
   }
@@ -507,7 +510,7 @@ canvas { width: 100%; height: auto; display: block; }
     var r = canvas.getBoundingClientRect();
     var x = (e.clientX - r.left) / r.width * 1000, y = (e.clientY - r.top) / r.height * 1000;
     function inside(b) { return x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h; }
-    if (!mapImg || (photoImg && inside(photoRect())) || inside(ENG) || inside(FOOT)) return;
+    if (!mapImg || (photoImg && inside(photoRect())) || inside(ENG) || inside(FOOT) || inside(SPA) || inside(LOGO_R)) return;
     if (inside(MAP)) {
       $('circleX').value = Math.max(0, Math.min(100, (x - MAP.x) / MAP.w * 100));
       $('circleY').value = Math.max(0, Math.min(100, (y - MAP.y) / MAP.h * 100));
