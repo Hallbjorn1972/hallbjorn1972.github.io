@@ -93,6 +93,7 @@ button.small, .btn.small { min-height: 40px; padding: 6px 12px; font-size: 14px;
 .filebtn { position: relative; overflow: hidden; width: 100%; justify-content: flex-start; font-weight: 600; }
 .filebtn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; font-size: 0; }
 .filebtn .state { margin-left: auto; color: var(--muted); font-weight: 400; font-size: 14px; }
+.ends { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); margin-top: 2px; }
 .hint { color: var(--muted); font-size: 14px; margin: 6px 0 0; }
 .inline { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
 .inline label { margin: 0; }
@@ -165,14 +166,19 @@ canvas { width: 100%; height: auto; display: block; }
   <h2>Images</h2>
   <label class="opt" style="margin-top:0">Map image <span class="opt">(a screenshot works)</span></label>
   <div class="btn filebtn" role="group">Choose map image <span class="state" id="mapState">None</span><input type="file" id="mapFile" accept="image/*" aria-label="Choose map image"></div>
-  <div class="inline"><input type="checkbox" id="circleOn" checked><label for="circleOn">Red circle on the map</label></div>
-  <label for="circleSize">Circle size</label>
+  <div class="inline"><input type="checkbox" id="circleOn" checked><label for="circleOn">Red oval on the map</label></div>
+  <label for="circleSize">Oval size</label>
   <input type="range" id="circleSize" min="20" max="200" value="85">
-  <label for="circleX">Move the circle left or right</label>
+  <label for="ovalLong">Oval shape</label>
+  <input type="range" id="ovalLong" min="0" max="100" value="0" aria-describedby="shapeEnds">
+  <div class="ends" id="shapeEnds"><span>Round</span><span>Long</span></div>
+  <label for="ovalRot">Rotate the oval</label>
+  <input type="range" id="ovalRot" min="0" max="180" value="0">
+  <label for="circleX">Move the oval left or right</label>
   <input type="range" id="circleX" min="0" max="100" step="0.5" value="50">
-  <label for="circleY">Move the circle up or down</label>
+  <label for="circleY">Move the oval up or down</label>
   <input type="range" id="circleY" min="0" max="100" step="0.5" value="50">
-  <p class="hint">Tap the map in the preview, or use the sliders, to move the circle.</p>
+  <p class="hint">Tap the map in the preview, or use the sliders, to move the oval. To circle a long or diagonal street, make the oval long, then rotate it.</p>
   <label for="mapZoom">Zoom the map</label>
   <input type="range" id="mapZoom" min="1" max="3" step="0.05" value="1">
   <label for="mapX">Move the map left or right</label>
@@ -204,7 +210,7 @@ canvas { width: 100%; height: auto; display: block; }
   <div id="status" role="status" aria-live="polite"></div>
 
   <div class="result" id="result" hidden>
-    <img id="out" alt="Finished square graphic. Press and hold to .">
+    <img id="out" alt="Finished square graphic. Press and hold to save.">
     <p class="hint" style="text-align:center">On a phone you can also press and hold the image and choose Save to Photos.</p>
     <div class="btns">
       <button type="button" class="primary" id="save">Save image</button>
@@ -225,9 +231,9 @@ canvas { width: 100%; height: auto; display: block; }
     <li><strong>Choose the alert type</strong> and write what was seen in English. Tap “Translate the English with DeepL,” then paste the Spanish into the Spanish box and read it over.</li>
     <li><strong>Check the date, time and place.</strong> The date and time start as right now. In the road, business or area box, name a landmark people will recognize, like a gas station or an exit.</li>
     <li><strong>Take a map screenshot.</strong> In Google Maps, search for the spot and zoom until the spot and the main roads around it are on screen. Then screenshot: on iPhone press the side button and volume up together, on most Android phones press power and volume down.</li>
-    <li><strong>Add the map.</strong> Tap “Choose map image” and pick the screenshot. A red circle appears. Tap the spot on the preview to move the circle, or use the sliders to move and resize it. If the search bar or buttons from Google Maps show, use the zoom and move sliders to frame them out.</li>
+    <li><strong>Add the map.</strong> Tap “Choose map image” and pick the screenshot. A red oval appears. Tap the spot on the preview to move it, or use the sliders to move, resize, stretch and rotate it. Make the oval long and rotate it to circle a street. If the search bar or buttons from Google Maps show, use the zoom and move sliders to frame them out.</li>
     <li><strong>Add a photo</strong> if you have one. It is optional.</li>
-    <li><strong>Tap “Make image.”</strong> Check the result, then save it to your device and copy the caption to post with it.</li>
+    <li><strong>Tap “Make image.”</strong> Check the result, then save it to your phone and copy the caption to post with it.</li>
   </ol>
   <p>Start a new report with the button at the bottom of the form. Your photos and text never leave your device, and city, state and footer settings are remembered for next time.</p>
 </details>
@@ -441,7 +447,8 @@ canvas { width: 100%; height: auto; display: block; }
       ctx.save();
       ctx.beginPath(); ctx.rect(MAP.x, MAP.y, MAP.w, MAP.h); ctx.clip();
       ctx.strokeStyle = RED; ctx.lineWidth = 4.5;
-      ctx.beginPath(); ctx.arc(MAP.x + (+$('circleX').value / 100) * MAP.w, MAP.y + (+$('circleY').value / 100) * MAP.h, +$('circleSize').value, 0, Math.PI * 2);
+      ctx.beginPath(); var R = +$('circleSize').value, k = +$('ovalLong').value / 100;
+      ctx.ellipse(MAP.x + (+$('circleX').value / 100) * MAP.w, MAP.y + (+$('circleY').value / 100) * MAP.h, R * (1 + 2.5 * k), R, +$('ovalRot').value * Math.PI / 180, 0, Math.PI * 2);
       ctx.stroke(); ctx.restore();
     }
 
@@ -496,7 +503,7 @@ canvas { width: 100%; height: auto; display: block; }
     im.onerror = function () { URL.revokeObjectURL(url); say('That file could not be opened as an image.'); };
     im.src = url;
   }
-  function resetFrame() { $('mapZoom').value = 1; $('mapX').value = 50; $('mapY').value = 50; $('circleX').value = 50; $('circleY').value = 50; }
+  function resetFrame() { $('mapZoom').value = 1; $('mapX').value = 50; $('mapY').value = 50; $('circleX').value = 50; $('circleY').value = 50; $('ovalLong').value = 0; $('ovalRot').value = 0; }
   $('mapFile').addEventListener('change', function (e) {
     var f = e.target.files[0]; if (!f) return;
     loadFile(f, function (c) { mapImg = c; resetFrame(); $('circleOn').checked = true; $('mapState').textContent = 'Added'; draw(); });
@@ -519,7 +526,7 @@ canvas { width: 100%; height: auto; display: block; }
   });
 
   // ---------- inputs ----------
-  ['type', 'en', 'es', 'date', 'time', 'road', 'city', 'state', 'circleOn', 'circleSize', 'circleX', 'circleY', 'mapZoom', 'mapX', 'mapY', 'photoY', 'fEn', 'fEs'].forEach(function (id) {
+  ['type', 'en', 'es', 'date', 'time', 'road', 'city', 'state', 'circleOn', 'circleSize', 'ovalLong', 'ovalRot', 'circleX', 'circleY', 'mapZoom', 'mapX', 'mapY', 'photoY', 'fEn', 'fEs'].forEach(function (id) {
     $(id).addEventListener('input', function () { if (id === 'city' || id === 'state' || id === 'fEn' || id === 'fEs') savePrefs(); draw(); });
     $(id).addEventListener('change', draw);
   });
