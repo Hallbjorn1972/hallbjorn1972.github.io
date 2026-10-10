@@ -374,6 +374,7 @@ canvas { width: 100%; height: auto; display: block; }
   }
 
   // ---------- text fitting ----------
+  var wrapBroke = false;
   function wrapPara(text, maxW) {
     var words = text.split(/\s+/).filter(Boolean), lines = [], cur = '';
     words.forEach(function (w) {
@@ -381,6 +382,7 @@ canvas { width: 100%; height: auto; display: block; }
       if (ctx.measureText(t).width <= maxW) { cur = t; return; }
       if (cur) lines.push(cur);
       if (ctx.measureText(w).width <= maxW) { cur = w; return; }
+      wrapBroke = true;
       var piece = '';
       Array.from(w).forEach(function (ch) {
         if (ctx.measureText(piece + ch).width > maxW && piece) { lines.push(piece); piece = ch; } else piece += ch;
@@ -394,9 +396,9 @@ canvas { width: 100%; height: auto; display: block; }
     var paras = String(text).split('\n'), lines, s;
     for (s = max; s >= min; s--) {
       ctx.font = weight + ' ' + s + 'px ' + FONT;
-      lines = [];
+      lines = []; wrapBroke = false;
       paras.forEach(function (p) { lines = lines.concat(p.trim() ? wrapPara(p, w) : ['']); });
-      if (lines.length * s * LH <= h) return { size: s, lines: lines };
+      if (!wrapBroke && lines.length * s * LH <= h) return { size: s, lines: lines };
     }
     return { size: min, lines: lines };
   }
@@ -463,12 +465,12 @@ canvas { width: 100%; height: auto; display: block; }
     ctx.restore();
     textBox(540, 15, 435, 136, v.stamp, { color: '#000', align: 'right', max: 24.8, min: 9, weight: 'normal', padX: 6, padY: 2 });
 
-    textBox(SPA.x, SPA.y, SPA.w, SPA.h, v.es, { bg: YELLOW, border: true, color: '#000', align: 'center', max: 29.8, min: 9, weight: 'normal', padX: 18 });
+    textBox(SPA.x, SPA.y, SPA.w, SPA.h, v.es, { bg: YELLOW, border: true, color: '#000', align: 'center', max: 50, min: 9, weight: 'normal', padX: 24, padY: 16 });
     drawLogo(LOGO_R.x, LOGO_R.y, LOGO_R.w, LOGO_R.h);
 
     if (photoImg) slot(PH, photoImg, '');
 
-    textBox(ENG.x, ENG.y, ENG.w, ENG.h, v.en, { bg: YELLOW, border: true, color: '#000', align: 'center', max: 29.8, min: 9, weight: 'normal', padX: 18 });
+    textBox(ENG.x, ENG.y, ENG.w, ENG.h, v.en, { bg: YELLOW, border: true, color: '#000', align: 'center', max: 50, min: 9, weight: 'normal', padX: 24, padY: 16 });
     textBox(FOOT.x, FOOT.y, FOOT.w, FOOT.h, v.fEn + '\n' + v.fEs, { bg: '#000', color: '#fff', align: 'right', max: 20.8, min: 8, weight: 'bold', padX: 8, padY: 2 });
 
     updateSide();
