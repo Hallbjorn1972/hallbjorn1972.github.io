@@ -186,10 +186,19 @@ canvas { width: 100%; height: auto; display: block; }
   <label for="mapY">Move the map up or down</label>
   <input type="range" id="mapY" min="0" max="100" value="50">
 
-  <label style="margin-top:18px">Photo <span class="opt">(optional)</span></label>
+  <label style="margin-top:18px">Photo <span class="opt">(optional, shown on the left)</span></label>
   <div class="btn filebtn" role="group">Take or choose a photo <span class="state" id="photoState">None</span><input type="file" id="photoFile" accept="image/*" aria-label="Take or choose a photo"></div>
   <label for="photoY">Move the photo up or down</label>
   <input type="range" id="photoY" min="0" max="100" value="100">
+  <label for="photoSize">Photo size</label>
+  <input type="range" id="photoSize" min="50" max="150" value="100">
+
+  <label style="margin-top:18px">Optional second photo <span class="opt">(shown on the right)</span></label>
+  <div class="btn filebtn" role="group">Take or choose a second photo <span class="state" id="photo2State">None</span><input type="file" id="photo2File" accept="image/*" aria-label="Take or choose a second photo"></div>
+  <label for="photo2Y">Move the second photo up or down</label>
+  <input type="range" id="photo2Y" min="0" max="100" value="0">
+  <label for="photo2Size">Second photo size</label>
+  <input type="range" id="photo2Size" min="50" max="150" value="100">
 
   <details>
     <summary>Edit the footer text</summary>
@@ -232,7 +241,7 @@ canvas { width: 100%; height: auto; display: block; }
     <li><strong>Check the date, time, and place.</strong> The date and time default to right now. In the "Road, Business or Area" box, name a landmark people will recognize, like a gas station or an exit number.</li>
     <li><strong>Take a map screenshot.</strong> In Google Maps, Apple Maps, or OpenStreetMap, search for the location and zoom until the main roads around it are on screen. Then screenshot: On iPhone press the side button and volume up together, on most Android phones, press Power and Volume Down.</li>
     <li><strong>Add the map.</strong> Tap “Choose map image” and pick the screenshot. A red oval appears by default. Tap the spot on the preview to move it, or use the sliders to move, resize, stretch and rotate it. Make the oval long and rotate it to circle a street. If the search bar or buttons from Google Maps show, use the zoom and move sliders to frame them out.</li>
-    <li><strong>Add a photo</strong> if you have one. It is optional.</li>
+    <li><strong>Add photos</strong> if you have them. They are optional. The first photo goes on the left and the optional second photo goes on the right. Use the sliders to move them up or down and make them larger or smaller.</li>
     <li><strong>Tap “Make image.”</strong> Check the result, then save it to your phone and copy the caption to post with it.</li>
   </ol>
   <p>Start a new report with the button at the bottom of the form. Your photos and text never leave your device, and city, state and footer settings are remembered for next time.</p>
@@ -263,21 +272,30 @@ canvas { width: 100%; height: auto; display: block; }
   var MAP = { x: 25, y: 194, w: 950, h: 701 };
   var SPA = { x: 25, y: 106, w: 505, h: 177 }, LOGO_R = { x: 825, y: 158, w: 150, h: 108 };
   var ENG = { x: 440, y: 760, w: 535, h: 162 }, FOOT = { x: 440, y: 932, w: 535, h: 52 };
-  // The photo keeps its own shape, about the same visual size as in the sheet version
-  function photoRect() {
+  // Each photo keeps its own shape. The sliders move it up or down and scale it.
+  function photoBox(img, side) {
     var w = 239, h = 395;
-    if (photoImg) {
-      var a = photoImg.width / photoImg.height;
+    if (img) {
+      var a = img.width / img.height;
       w = Math.sqrt(100000 * a); h = w / a;
       if (w > 340) { w = 340; h = w / a; }
       if (h > 480) { h = 480; w = h * a; }
     }
-    var top = 298, bottom = 983 - h, k = +$('photoY').value / 100;
-    return { x: 17, y: top + (bottom - top) * k, w: w, h: h };
+    var left = side === 'L', s = +$(left ? 'photoSize' : 'photo2Size').value / 100;
+    w *= s; h *= s;
+    var maxH = left ? 600 : 470, maxW = 420;
+    if (h > maxH) { w *= maxH / h; h = maxH; }
+    if (w > maxW) { h *= maxW / w; w = maxW; }
+    var top = left ? 298 : 276, bottom = left ? 983 - h : 748 - h;
+    if (bottom < top) bottom = top;
+    var k = +$(left ? 'photoY' : 'photo2Y').value / 100;
+    return { x: left ? 17 : 983 - w, y: top + (bottom - top) * k, w: w, h: h };
   }
+  function photoRect() { return photoBox(photoImg, 'L'); }
+  function photo2Rect() { return photoBox(photo2Img, 'R'); }
 
   var canvas = $('cv'), ctx = canvas.getContext('2d');
-  var mapImg = null, photoImg = null;
+  var mapImg = null, photoImg = null, photo2Img = null;
   // Groups. "crop" is the part of the logo image to show: [x, y, width, height] in image pixels.
   // A group with no logo yet shows its name on a black box instead.
   var ORGS = [
@@ -469,6 +487,7 @@ canvas { width: 100%; height: auto; display: block; }
     drawLogo(LOGO_R.x, LOGO_R.y, LOGO_R.w, LOGO_R.h);
 
     if (photoImg) slot(PH, photoImg, '');
+    if (photo2Img) slot(photo2Rect(), photo2Img, '');
 
     textBox(ENG.x, ENG.y, ENG.w, ENG.h, v.en, { bg: YELLOW, border: true, color: '#000', align: 'center', max: 50, min: 9, weight: 'normal', padX: 24, padY: 16 });
     textBox(FOOT.x, FOOT.y, FOOT.w, FOOT.h, v.fEn + '\n' + v.fEs, { bg: '#000', color: '#fff', align: 'right', max: 20.8, min: 8, weight: 'bold', padX: 8, padY: 2 });
@@ -510,6 +529,10 @@ canvas { width: 100%; height: auto; display: block; }
     var f = e.target.files[0]; if (!f) return;
     loadFile(f, function (c) { mapImg = c; resetFrame(); $('circleOn').checked = true; $('mapState').textContent = 'Added'; draw(); });
   });
+  $('photo2File').addEventListener('change', function (e) {
+    var f = e.target.files[0]; if (!f) return;
+    loadFile(f, function (c) { photo2Img = c; $('photo2State').textContent = 'Added'; draw(); });
+  });
   $('photoFile').addEventListener('change', function (e) {
     var f = e.target.files[0]; if (!f) return;
     loadFile(f, function (c) { photoImg = c; $('photoState').textContent = 'Added'; draw(); });
@@ -519,7 +542,7 @@ canvas { width: 100%; height: auto; display: block; }
     var r = canvas.getBoundingClientRect();
     var x = (e.clientX - r.left) / r.width * 1000, y = (e.clientY - r.top) / r.height * 1000;
     function inside(b) { return x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h; }
-    if (!mapImg || (photoImg && inside(photoRect())) || inside(ENG) || inside(FOOT) || inside(SPA) || inside(LOGO_R)) return;
+    if (!mapImg || (photoImg && inside(photoRect())) || (photo2Img && inside(photo2Rect())) || inside(ENG) || inside(FOOT) || inside(SPA) || inside(LOGO_R)) return;
     if (inside(MAP)) {
       $('circleX').value = Math.max(0, Math.min(100, (x - MAP.x) / MAP.w * 100));
       $('circleY').value = Math.max(0, Math.min(100, (y - MAP.y) / MAP.h * 100));
@@ -528,7 +551,7 @@ canvas { width: 100%; height: auto; display: block; }
   });
 
   // ---------- inputs ----------
-  ['type', 'en', 'es', 'date', 'time', 'road', 'city', 'state', 'circleOn', 'circleSize', 'ovalLong', 'ovalRot', 'circleX', 'circleY', 'mapZoom', 'mapX', 'mapY', 'photoY', 'fEn', 'fEs'].forEach(function (id) {
+  ['type', 'en', 'es', 'date', 'time', 'road', 'city', 'state', 'circleOn', 'circleSize', 'ovalLong', 'ovalRot', 'circleX', 'circleY', 'mapZoom', 'mapX', 'mapY', 'photoY', 'photoSize', 'photo2Y', 'photo2Size', 'fEn', 'fEs'].forEach(function (id) {
     $(id).addEventListener('input', function () { if (id === 'city' || id === 'state' || id === 'fEn' || id === 'fEs') savePrefs(); draw(); });
     $(id).addEventListener('change', draw);
   });
@@ -540,9 +563,10 @@ canvas { width: 100%; height: auto; display: block; }
 
   $('reset').addEventListener('click', function () {
     ['en', 'es', 'road'].forEach(function (id) { $(id).value = ''; });
-    mapImg = null; photoImg = null; resetFrame();
-    $('mapFile').value = ''; $('photoFile').value = ''; $('photoY').value = 100;
-    $('mapState').textContent = 'None'; $('photoState').textContent = 'None';
+    mapImg = null; photoImg = null; photo2Img = null; resetFrame();
+    $('mapFile').value = ''; $('photoFile').value = ''; $('photoY').value = 100; $('photoSize').value = 100;
+    $('photo2File').value = ''; $('photo2Y').value = 0; $('photo2Size').value = 100;
+    $('mapState').textContent = 'None'; $('photoState').textContent = 'None'; $('photo2State').textContent = 'None';
     $('result').hidden = true; setNow(); say(''); draw();
     window.scrollTo(0, 0);
   });
