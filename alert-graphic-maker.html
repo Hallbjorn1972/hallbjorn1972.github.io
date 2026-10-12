@@ -593,18 +593,14 @@ canvas { width: 100%; height: auto; display: block; }
     }, 'image/png');
   });
 
-  $('save').addEventListener('click', async function () {
+  $('save').addEventListener('click', function () {
     if (!blob) return;
-    try {
-      if (window.claude && claude.use) {
-        var dl = await claude.use('downloads');
-        if (dl) { await dl.save({ filename: fileName(), data: blob }); say('Saved.'); return; }
-      }
-    } catch (err) {
-      if (err && err.code === 'declined') { say(''); return; }
-    }
     var a = document.createElement('a');
-    a.href = blobUrl; a.download = fileName(); document.body.appendChild(a); a.click(); a.remove();
+    a.href = blobUrl;
+    a.download = fileName();
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
     say('If nothing downloaded, press and hold the image and choose Save.');
   });
 
